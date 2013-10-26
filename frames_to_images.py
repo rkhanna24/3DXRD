@@ -10,7 +10,8 @@ experiment.
 This program is meant to be run in spyder because in its console
 the progress bar shows. The progress bar will show up after each step in 
 iPython and after the entire program finishes in Python.
-
+Functions are not meant to be exported to other programs, as they depend on
+global variables in this program.
 @TODO Parallilize some loops
 @TODO ?
 """
@@ -39,14 +40,14 @@ bg_name = directory + 'Ti7Test_00017.ge2'
 # ID of first binary file, eg Ti7_PreHRM_PreLoad__00553, where 53 is the ID
 lower = 53
 # ID of last binary file, eg Ti7_PreHRM_PreLoad__00570, where 70 is the ID
-upper = 70
+upper = 53
 # Name of binary files before ID
 filehead = 'Ti7_PreHRM_PreLoad__005'
 # Name of output binary and output images; specify directory of output if necessary
 #   eg outdirectory = "/Home/Desktop"
 #       outbin = outdirectory + "outputnamehere"
-outputim = "ring"
-outputbin = "ring"
+outputim = "ringc"
+outputbin = "ringc"
 # Change to False if higher resolution ring image is not necessary
 rgb = True
 # Modify the threshold to make the background of the rings dark
@@ -269,17 +270,17 @@ def toHex(im_data):
             temp = temp[0:2] + "00" + temp[2:4]
         # Of the format 0xc--needs to be 0x000c
         elif len(temp) == 3:
-            temp = temp[0:2] + "000" + temp[2:4]
+            temp = temp[0:2] + "000" + temp[2:3]
         # Removes the '0x' in front of all hex strings so that when its decoded
         # as a hexadecimal, it doesnt convert 0x to hexadecimal
         temp = temp.replace('0x','')
         # appends current converted intensity to the full hex string
-        im_hex = im_hex + temp
+        im_hex = im_hex + temp.decode('hex')
         if((i % 100000) == 0):
             print ".",
     # Writes converted intensity data as a hex string where each character is a
     # a hexadecimal digit
-    im_hex = im_hex.decode('hex')       
+    #im_hex = im_hex.decode('hex')       
 
     print ""
     print "DONE"
