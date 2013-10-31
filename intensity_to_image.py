@@ -13,14 +13,26 @@ header = 8192
 im_bytes = 2*2048**2
 size = (2048,2048)
 threshold = 60
+inputbin = 'ring'
 outputim = "ringb"
 rgb = True
 
 def toImage(image_data):
     """
+    @param im_data uint16 array containing intensities from binary files
+    
+    This function converts the intensity data from all files into an image and saves
+        it
+    """
+    """
     Plots the intensity data using matplotlib; faster but high resolution is
         lost
     """
+    """
+    Plots the intensity data using matplotlib; faster but high resolution is
+        lost
+    """
+    
     # Removes values below a threshold to make the background of the ring images
     #   black
     plt.imshow(np.minimum(stats.threshold(image_data,threshmin=threshold,newval=0),255+0*image_data))
@@ -57,16 +69,17 @@ def toImage(image_data):
         image.save(outputim + ".png")
 
 
-"""
-@param a intensity to be converted to RGB values
-@param maxI maximum intensity of the entire data, used to make gradient
 
-@ return [r,g,b] uint8 red,green,blue values
-
-This function converts uint16's to red, green, values where each channel 
-    occupies 1 byte. Converts the intensity according to a gradient.
-"""   
 def toRGB(a, maxI):
+    """
+    @param a intensity to be converted to RGB values
+    @param maxI maximum intensity of the entire data, used to make gradient
+    
+    @ return [r,g,b] uint8 red,green,blue values
+    
+    This function converts uint16's to red, green, values where each channel 
+    occupies 1 byte. Converts the intensity according to a gradient.
+    """   
     # If the intensity is below the threshold, set its corresponding pixel to be
     #   completely black
     if a <= threshold:
@@ -95,7 +108,7 @@ def toRGB(a, maxI):
         b = (color >> 0) & 0xFF
         return [r,g,b]
         
-f = open('ringc','rb')
+f = open(inputbin,'rb')
 
 f.seek(header)
 im_hex = f.read(im_bytes)

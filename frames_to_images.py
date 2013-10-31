@@ -19,6 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import Image
+import struct
 
 """
 You will most likely not need to modify the following Global parameters
@@ -40,14 +41,14 @@ bg_name = directory + 'Ti7Test_00017.ge2'
 # ID of first binary file, eg Ti7_PreHRM_PreLoad__00553, where 53 is the ID
 lower = 53
 # ID of last binary file, eg Ti7_PreHRM_PreLoad__00570, where 70 is the ID
-upper = 53
+upper = 70
 # Name of binary files before ID
 filehead = 'Ti7_PreHRM_PreLoad__005'
 # Name of output binary and output images; specify directory of output if necessary
 #   eg outdirectory = "/Home/Desktop"
 #       outbin = outdirectory + "outputnamehere"
-outputim = "ringc"
-outputbin = "ringc"
+outputim = "ring"
+outputbin = "ring"
 # Change to False if higher resolution ring image is not necessary
 rgb = True
 # Modify the threshold to make the background of the rings dark
@@ -72,17 +73,18 @@ if(len(bg_name) != 0):
 else:
     bg = np.zeros(size)
 
-"""
-@param im_num integer ID of the binary file being converted
-@param im_data uint16 array containing intensities from previous binary files;
-        0 if first binary file
 
-@return im_data uint16 array that has been converted from binary data
-
-This function converts all the frames in one binary file to an array storing the
-intensity data of the binary file.
-"""
 def combineFrames(im_num,im_data):
+    """
+    @param im_num integer ID of the binary file being converted
+    @param im_data uint16 array containing intensities from previous binary files;
+            0 if first binary file
+    
+    @return im_data uint16 array that has been converted from binary data
+    
+    This function converts all the frames in one binary file to an array storing the
+    intensity data of the binary file.
+    """
     # opens the binary file to be converted
     filename = directory + filehead + str(im_num)    
     f = open(filename,'rb')
@@ -116,13 +118,14 @@ def combineFrames(im_num,im_data):
     print("DONE")    
     return im_data
 
-"""
-@param im_data uint16 array containing intensities from binary files
-
-This function converts the intensity data from all files into an image and saves
-    it
-"""      
+  
 def toImage(image_data):
+    """
+    @param im_data uint16 array containing intensities from binary files
+    
+    This function converts the intensity data from all files into an image and saves
+        it
+    """
     """
     Plots the intensity data using matplotlib; faster but high resolution is
         lost
@@ -161,17 +164,20 @@ def toImage(image_data):
         image = Image.fromarray(rgbArr,'RGB')
         # Saves image to output director provided
         image.save(outputim + ".png")
-"""
-@param im_data uint16 array containing intensities from binary files
-
-This function converts the intensity data from all files to binary data and 
-    saves it to the directory specified, in order to make it easier to obtain
-    intensity data
-"""          
+        
 def writeImage(im_data):
-    # Converts intensity data to binary
-    im_hex = toHex(im_data)
-    # Grabs header from first binary file
+    """
+    @param im_data uint16 array containing intensities from binary files
+    
+    This function converts the intensity data from all files to binary data and 
+        saves it to the directory specified, in order to make it easier to obtain
+        intensity data
+    """
+    print("Writing image")
+    im_data.shape = size[0]**2
+    fmt = 'H'*len(im_data)
+    im_hex = struct.pack(fmt,*im_data)
+    
     f = open(directory+filehead+str(lower),'rb')
     head = f.read(header)
     f.close()
@@ -180,14 +186,16 @@ def writeImage(im_data):
     f.write(head)
     f.write(im_hex)
     f.close()
-"""
-@param im_data uint16 array containing intensities from binary files
+    print "DONE"
 
-This function converts the intensity data from all files to binary data and 
-    saves it to the directory specified, in order to make it easier to obtain
-    intensity data
-"""          
 def convertFrame(im_data_hex, bg, size):
+    """
+    @param im_data uint16 array containing intensities from binary files
+    
+    This function converts the intensity data from all files to binary data and 
+        saves it to the directory specified, in order to make it easier to obtain
+        intensity data
+    """
     # Converts binary data to uint16 array; binary data can't be converted to 
     #   double
     image_data = np.fromstring(im_data_hex,dtype='uint16')
@@ -204,16 +212,17 @@ def convertFrame(im_data_hex, bg, size):
     # Converts the intensity array back to uint16
     image_data = np.uint16(image_data)
     return image_data
-"""
-@param a intensity to be converted to RGB values
-@param maxI maximum intensity of the entire data, used to make gradient
-
-@ return [r,g,b] uint8 red,green,blue values
-
-This function converts uint16's to red, green, values where each channel 
-    occupies 1 byte. Converts the intensity according to a gradient.
-"""    
+   
 def toRGB(a, maxI):
+    """
+    @param a intensity to be converted to RGB values
+    @param maxI maximum intensity of the entire data, used to make gradient
+    
+    @ return [r,g,b] uint8 red,green,blue values
+    
+    This function converts uint16's to red, green, values where each channel 
+        occupies 1 byte. Converts the intensity according to a gradient.
+    """
     # If the intensity is below the threshold, set its corresponding pixel to be
     #   completely black
     if a <= threshold:
@@ -241,51 +250,7 @@ def toRGB(a, maxI):
         g = (color >> 4) & 0xFF
         b = (color >> 0) & 0xFF
         return [r,g,b]
-"""
-@param im_data uint16 array containing intensities from binary files
 
-@return im_hex string of the hexadecimal intensity data for the binary file
-
-This function converts the provided intensity array to a hexadecimal data 
-containing the same intensity data in binary for the binary file for storage
-"""    
-def toHex(im_data):
-    # Converts array to list
-    im_data.shape = (size[0]**2)
-    im_data = im_data.tolist()
-    im_hex = ""
-    print "Writing Image: ",
-    for i in range(len(im_data)):
-        # Converts intensity to hexadecimal string
-        temp = hex(im_data[i])
-        # The length of the hex string may not match the necessary format
-        #   Each byte in the binary file consists of 2 hexadecimal digits
-        #   The following converts all possible outputs of the hex of a uint16
-        #   so that it can be written to a binary file.
-        # Of the format 0xabc--needs to be 0x0abc
-        if len(temp) == 5:
-            temp = temp[0:2] + '0' + temp[2:5]
-        # Of the format 0xbc--needs to be 0x00bc
-        elif len(temp) == 4:
-            temp = temp[0:2] + "00" + temp[2:4]
-        # Of the format 0xc--needs to be 0x000c
-        elif len(temp) == 3:
-            temp = temp[0:2] + "000" + temp[2:3]
-        # Removes the '0x' in front of all hex strings so that when its decoded
-        # as a hexadecimal, it doesnt convert 0x to hexadecimal
-        temp = temp.replace('0x','')
-        # appends current converted intensity to the full hex string
-        im_hex = im_hex + temp.decode('hex')
-        if((i % 100000) == 0):
-            print ".",
-    # Writes converted intensity data as a hex string where each character is a
-    # a hexadecimal digit
-    #im_hex = im_hex.decode('hex')       
-
-    print ""
-    print "DONE"
-    
-    return im_hex
 """
 Main loop that converts all frames
 """    
