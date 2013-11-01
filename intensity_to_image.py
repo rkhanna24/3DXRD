@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 25 18:34:13 2013
+@File: intensity_to_image.py
+@Author: Rohan Khanna
+@Date:Fri Oct 25, 2013
 
-@author: tempuser
+The following script converts all the intensity data in one 
+directory to an  image.
+This program is meant to be run in spyder because in its console
+the progress bar shows. The progress bar will show up after each step in 
+iPython and after the entire program finishes in Python.
+Functions are not meant to be exported to other programs, as they depend on
+global variables in this program.
+@TODO Parallilize some loops
+@TODO ?
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,9 +31,10 @@ def toImage(image_data):
     """
     @param im_data uint16 array containing intensities from binary files
     
-    This function converts the intensity data from all files into an image and saves
-        it
+    This function converts the intensity data from all files into an image 
+        and saves it
     """
+    
     """
     Plots the intensity data using matplotlib; faster but high resolution is
         lost
@@ -43,8 +54,8 @@ def toImage(image_data):
     plt.savefig(outputim + "-lo.png")
 
     """
-    Plots the intensity map by converting intensities to RGB values; slower but 
-        has higher resolution
+    Plots the intensity map by converting intensities to RGB values; slower  
+        but has higher resolution
     """
     # Only does this if desired
     if(rgb):
@@ -95,10 +106,10 @@ def toRGB(a, maxI):
         slope = white/maxI
         color = np.int(slope*a)
         """
-        Converts uint16 to pixel by assuming each channel occupies 4 bits. This
-        can be modified to either: 5-5-5: each channel occupies 5 bits or
-                                   5-6-6: red and blue occupy 5 bits while green
-                                            occupies 6 bits
+        Converts uint16 to pixel by assuming each channel occupies 4 bits. 
+        This can be modified to either: 5-5-5: each channel occupies 5 bits 
+                                     or 5-6-6: red and blue occupy 5 bits 
+                                             while green occupies 6 bits
         To see how, check out: 
         http://msdn.microsoft.com/en-us/library/windows/desktop/dd390989%28v=vs.85%29.aspx
         Alpha channel is irrelevant.

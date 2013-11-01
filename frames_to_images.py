@@ -13,6 +13,7 @@ iPython and after the entire program finishes in Python.
 Functions are not meant to be exported to other programs, as they depend on
 global variables in this program.
 @TODO Parallilize some loops
+@TODO Allow exports of Functions
 @TODO ?
 """
 import numpy as np
