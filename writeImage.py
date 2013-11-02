@@ -5,7 +5,8 @@ import Image
 import sys
 import time
 
-def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True):
+def toImage(image_data, outputim, size = (2048,2048), threshold = 60, 
+                    rgb = True, bar = True):
     """
     @param im_data uint16 array containing intensities from binary files
     
@@ -36,17 +37,17 @@ def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True
         # creates an mxnx3 array of zeros of type uint8; this array will store 
         #   the RGB values that will be converted to an image
         rgbArr = np.zeros((size[0],size[0],3),dtype = 'uint8')
-        
         sys.stdout.write("Converting to Image")
-        sys.stdout.write("\n")
-        sys.stdout.write("[%s]"%(" "*41))
-        sys.stdout.write("\b" * 42)
-        i = 1
+        if(bar):
+            sys.stdout.write("\n")
+            sys.stdout.write("[%s]"%(" "*41))
+            sys.stdout.write("\b" * 42)
+            i = 1
         for i in range(size[0]):
             for j in range(size[0]):
                 # Converts intensity to pixel
                 rgbArr[i,j] = toRGB(image_data[i][j],maxI)
-            if(i % 50 == 0):
+            if(i % 50 == 0 and bar):
                 sys.stdout.write("=")
                 sys.stdout.flush()
                 time.sleep(0.01)

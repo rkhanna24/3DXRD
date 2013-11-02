@@ -19,11 +19,14 @@ output = 'ringb'
 minID = 0
 maxID = 0
 
+pBar = False
+
 im = readGE.readGE( directory = folder, 
 					filePrefix = fileHead, 
 					bgFile = bgName,
 					lowerID = minID, 
-					upperID = maxID)
+					upperID = maxID, 
+                     bar = pBar)
 
 writeImage.toImage( image_data = im, 
 					outputim = output)
@@ -32,4 +35,5 @@ writeGE.writeGE( image_data = im,
 				 directory = folder,
 				 filePrefix = fileHead,
 				 outputbin = output,
-				 lowerID = minID)
+				 lowerID = minID,
+                  bar = pBar)

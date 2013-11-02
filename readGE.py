@@ -30,14 +30,12 @@ def combineFrames(im_data, bg, filename, size = (2048,2048),
 
     f = open(filename,'rb')
     f.seek(offset)
+    sys.stdout.write("Converting File: {0}".format(filename))
     if(bar):
-        sys.stdout.write("Converting File: {0}".format(filename))
         sys.stdout.write("\n")
         sys.stdout.write("[%s]"%(" "*40))
         sys.stdout.write("\b" * 41)
         i = 1
-    else:
-        sys.stdout.write("Converting File: {0}".format(filename))
     while(True):
         im_data_hex = f.read(frameSize)
         if(len(im_data_hex) == 0):
@@ -54,7 +52,7 @@ def combineFrames(im_data, bg, filename, size = (2048,2048),
     f.close()
     return im_data
 
-def convertBin(im_data_hex, bg, size):
+def convertBin(im_data_hex, bg, size = (2048,2048)):
     """
     @param im_data uint16 array containing intensities from binary files
     
@@ -72,7 +70,7 @@ def convertBin(im_data_hex, bg, size):
     return image_data
 
 def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0, 
-            size = (2048,2048), header = 8192):
+            size = (2048,2048), header = 8192, bar = True):
 
     frameSize = 2*size[0]**2
 
@@ -92,13 +90,13 @@ def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0,
     IDs = np.uint8(IDs)
 
     im = np.zeros(size)
+    pBar = bar
     for ID in IDs:
         if ID == 0:
             IDstr = ''
             pBar = False
         else:
             IDstr = str(ID)
-            pBar = True
         filename = directory + filePrefix + IDstr
         temp = combineFrames(im,bg,filename, bar = pBar)
         im = np.maximum(im,temp)
