@@ -18,7 +18,7 @@ maxID = 70 # ID of last binary
 #minID = 0
 #maxID = 0
 
-pBar = True
+pBar = True # Set to False if not in Python or iPython
 
 im = readGE.readGE( directory = folder, 
                        filePrefix = fileHead, 
