@@ -28,7 +28,7 @@ image_data = convertBin(image_data,np.zeros(size))
 cx = 1024
 cy = 1024
 r1 = 410
-r2 = 430
+guessR = 430
 r3 = 440
 ring1 = np.zeros((2048,2048))
 ring1_x = []
@@ -50,7 +50,6 @@ plt.imshow(np.minimum(stats.threshold(ring1,
 plt.hot()
 
 plt.axis([0, 2048, 0, 2048])
-
 
 plt.plot([cx],[cx],'bo')
 
