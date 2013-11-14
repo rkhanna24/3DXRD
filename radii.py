@@ -44,8 +44,7 @@ for i in range(2048):
            ring1_I.append(image_data[i,j])
 
 plt.ion()
-plt.imshow(np.minimum(stats.threshold(ring1,
-                       threshmin=60, newval=0), 255 + 0*ring1))
+plt.imshow(np.minimum(ring1, 255 + 0*ring1))
 
 plt.hot()
 
