@@ -19,11 +19,6 @@ image_data = f.read()
 image_data = np.double(convertBin(image_data,np.zeros(size)))
 f.close()
 
-<<<<<<< HEAD
-plt.ion()
-plt.imshow(np.minimum(ring1, 255 + 0*ring1))
-=======
->>>>>>> origin/master
 
 def getCircles(guess,ringi):
     cx = guess[0]
