@@ -7,16 +7,16 @@ bgName = folder + 'Ti7Test_00017.ge2'
 fileHead = 'Ti7_PreHRM_PreLoad__005'
 output = 'ring'
 
-#folder = '/home/tempuser/Rohan/'
-#bgName = ''
-#fileHead = 'ring'
-#output = 'ringb'
+folder = '/home/tempuser/Rohan/'
+bgName = ''
+fileHead = 'rings1-11'
+output = 'ringb'
 
-minID = 53 # ID of first binary
-maxID = 70 # ID of last binary
+#minID = 53 # ID of first binary
+#maxID = 70 # ID of last binary
 
-#minID = 0
-#maxID = 0
+minID = 0
+maxID = 0
 
 pBar = True # Set to False if not in Python or iPython
 

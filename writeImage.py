@@ -18,8 +18,8 @@ def toImage(image_data, outputim, size = (2048,2048), threshold = 60,
     """
     # Removes values below a threshold to make the background of the ring images
     #   black
-    plt.imshow(np.minimum(stats.threshold(image_data,
-                            threshmin=threshold, newval=0), 255 + 0*image_data))
+    image_data.shape = size
+    plt.imshow(np.minimum(stats.threshold(image_data,threshmin=threshold, newval=0), 255 + 0*image_data))
     # Specifies the color map; can be modified if you want!
     plt.hot()
     plt.axis('off')

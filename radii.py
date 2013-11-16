@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from readGE import convertBin
+from writeGE import writeGE
+from writeImage import toImage
 
 filename = 'ring'
 offset = 8192
@@ -45,10 +47,7 @@ def getCircles(guess,ringi):
                 Ii.append(image_data[i,j])
                 
     x = gnewtonm(x_0,xi,yi)
-    print x.T
     ringi = np.maximum(ringi,ring1)
-    #iringPlotter(x,ringi)
-    #ringPlotter(x,r1,r3)
     return x.T,ringi
     
 def r(xk,xi,yi):
@@ -129,8 +128,15 @@ guesses[7,2:5] = [867.0,869.0,880.8]
 guesses[8,2:5] = [883.0,897.0,901.0]
 guesses[9,2:5] = [910.0,925.0,945.0]
 guesses[10,2:5] = [955.0,975.0,995.0]
+
 circles = np.zeros((11,3))
 ringi = np.zeros((2048,2048))
 for i in range(11):
     circles[i,:],ringi = getCircles(guesses[i,:],ringi)
     iringPlotter(circles[i,:],ringi)
+
+print circles
+ringi = np.uint16(ringi)
+ringi.shape = (2048,2048)
+writeGE(ringi, '/home/tempuser/Rohan/', 'ring', 'rings1-11', 0)
+np.savetxt('circles.out', circles, delimiter=',') 
