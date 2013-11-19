@@ -10,7 +10,7 @@ output = 'ring'
 folder = '/home/tempuser/Rohan/'
 bgName = ''
 fileHead = 'rings1-11'
-output = 'ringb'
+output = 'ringb1-11'
 
 #minID = 53 # ID of first binary
 #maxID = 70 # ID of last binary

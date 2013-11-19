@@ -138,5 +138,7 @@ for i in range(11):
 print circles
 ringi = np.uint16(ringi)
 ringi.shape = (2048,2048)
+
 writeGE(ringi, '/home/tempuser/Rohan/', 'ring', 'rings1-11', 0)
+
 np.savetxt('circles.out', circles, delimiter=',') 
