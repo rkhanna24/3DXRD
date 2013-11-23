@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from readGE import convertBin
 from writeGE import writeGE
-from writeImage import toImage
 
 filename = 'ring'
 offset = 8192
