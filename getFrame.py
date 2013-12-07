@@ -6,6 +6,7 @@ Created on Thu Dec  5 17:22:12 2013
 """
 
 import numpy as np
+from scipy import stats
 from readGE import convertBin
 
 def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0,
@@ -39,6 +40,7 @@ def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0,
     f.seek(offset)
     im_data_hex = f.read(frameSize)
     im = convertBin(im_data_hex, bg, size)
+    #im = stats.threshold(im,threshmin = 100, newval = 0)
     f.close()
     
     return im
