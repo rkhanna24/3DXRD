@@ -40,8 +40,8 @@ def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0,
     f.seek(offset)
     im_data_hex = f.read(frameSize)
     im = convertBin(im_data_hex, bg, size)
-    #im = stats.threshold(im,threshmin = 100, newval = 0)
+     
     f.close()
-    
+    im = stats.threshold(im,threshmin = 60, newval = 0)
     return im
     
