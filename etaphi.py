@@ -36,7 +36,7 @@ def makeMap(ringi):
             for j in range(len(imc)):
                 etaInt[eei[j],k] = imc[j] + etaInt[eei[j],k]
             k = k + 1
-            print k
+            #print k
     
     plotter(etaInt, ringi)
     
@@ -52,6 +52,8 @@ def plotter(etaInt, ringi):
     p = []
     w = []
     
+    ringNo = ringi + 1
+    
     plt.ion()
     plt.figure()
     plt.axis([0,180,0,360])
@@ -66,16 +68,18 @@ def plotter(etaInt, ringi):
             p.append(pi[j])
             w.append(wi[j,0])
     
-    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.RdYlGn, edgecolors = 'None', alpha = 0.75)
+    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.BuYlRd, edgecolors = 'None', alpha = 0.75)
     plt.colorbar()
     plt.grid()
     
     plt.xlabel(r'$\phi$', fontdict = font)
-    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
-    plt.title(r'$\eta$-$\phi$ Map, Ring 1', fontdict = font)
     
-    plt.show()
-    plt.savefig('eta-phi-map'+str(ringi+1)+'.png')
+    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
+    plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
+    
+    #plt.show()
+    
+    plt.savefig('eta-phi-map'+str(ringNo)+'.png')
 
 def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0, toler = 60,
               size = (2048,2048), header = 8192, frameSize = 2*2048**2):
@@ -130,5 +134,6 @@ yy = np.tile(a,[2048,1]) #y's
 a.shape = [2048,1] 
 xx = np.tile(a,[1,2048]) #x's
 
-for i in range(1,2):
+numRings = 11
+for i in range(numRings):
     makeMap(i)
