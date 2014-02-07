@@ -68,7 +68,7 @@ def plotter(etaInt, ringi):
             p.append(pi[j])
             w.append(wi[j,0])
     
-    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.BuYlRd, edgecolors = 'None', alpha = 0.75)
+    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
     plt.colorbar()
     plt.grid()
     
