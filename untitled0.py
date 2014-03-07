@@ -14,6 +14,11 @@ i = int(sys.argv[1])
 print i
 print type(i)
 
+sys.stdout.write("Making Map: {0}".format(i))
+sys.stdout.write("Making Map: {0}\n".format(i))
+sys.stdout.write("Making Map: {0}\n".format(i))
+sys.stdout.write("Making Map: {0}".format(i))
+
 #font = {'family': 'serif',
 #            'color': 'black',
 #            'weight': 'normal',
@@ -43,3 +48,19 @@ print type(i)
 #c = np.array([[10,22,31,41],[23,12,14,65]])
 #cnew = c*(255.0/np.max(c))
 #print cnew
+#
+#c = [10,22,31,41,23,12,14,65]
+#ca = np.array(c)
+#print c
+#print ca
+#ca = 1 + np.log10(ca)
+#cl = ca.tolist()
+#print ca
+#print cl
+#
+#a = [0,1,2,4,5,1,3,4]
+#b = [0,1,2,3,4,5,6,7]
+#c = [10,22,31,41,23,12,14,65]
+#
+#l = np.array([a,b,c]).T
+#print l

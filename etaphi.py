@@ -77,10 +77,7 @@ def makeMap(ringi):
     tol = 500
     k = 0
     
-    sys.stdout.write("Making Map: {0}".format(ringi))
-    sys.stdout.write("\n")
-    sys.stdout.write("[%s]"%(" "*40))
-    sys.stdout.write("\b" * 41)
+    sys.stdout.write("Making Map: {0}\n".format(ringi))
     
     for ID in IDs:
         for i in range(1,201):
@@ -90,12 +87,7 @@ def makeMap(ringi):
             for j in range(len(imc)):
                 etaInt[eei[j],k] = imc[j] + etaInt[eei[j],k]
             k = k + 1
-            if(i % 90 == 0):
-                sys.stdout.write("=")
-                sys.stdout.flush()
-                time.sleep(0.01)
-    sys.stdout.write("\n")
-            #print k
+            
     
     plotter(etaInt, ringi)
     
@@ -108,7 +100,7 @@ def plotter(etaInt, ringi):
     current directory.
     """
     
-    sys.stdout.write("Writing Images: {0}".format(ringi))
+    sys.stdout.write("Writing Images and Arrays: {0}\n".format(ringi))
     
     font = {'family': 'serif',
             'color': 'black',
@@ -119,22 +111,8 @@ def plotter(etaInt, ringi):
     
     etaInt = np.flipud(etaInt) # the eta-phi array is flipped across the horizontal 
                                # because the origin is at the top left prior to the flip 
-
-    etaInt = etaInt*(255.0/np.max(etaInt))
-        
-    plt.ion()
-    plt.figure()
-    plt.imshow(etaInt,origin='lower',
-               extent=[0, 180, 0, 360],aspect=0.5, cmap = plt.cm.YlOrBr)
-    plt.colorbar()
-    plt.grid()
+    np.savetxt('eta-phi-map-arr-'+str(ringNo)+'.csv', etaInt, delimiter=',')
     
-    plt.xlabel(r'$\phi$', fontdict = font)
-    
-    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
-    plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-
-    plt.savefig('eta-phi-map'+str(ringNo)+'.png')
     
     e = []
     p = []
@@ -155,10 +133,34 @@ def plotter(etaInt, ringi):
             e.append(ei[j,0])
             p.append(pi[j])
             w.append(wi[j,0])
-            #print j
+            
+            
+    etaArr = np.array([e,p,w]).T
+    np.savetxt('eta-phi-map-list-'+str(ringNo)+'.csv', etaArr, delimiter=',')
     
     # makes a scatter plot with the phi as the x coordinates, eta as the y coordinates and
     # integrated etas as the weights
+    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
+    plt.colorbar()
+    plt.grid()
+
+    plt.ion()
+    plt.figure()
+    plt.axis([0,180,0,360])
+    plt.xlabel(r'$\phi$', fontdict = font)
+    
+    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
+    plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
+    plt.savefig('eta-phi-map-scatter-'+str(ringNo)+'.png')
+    
+    w = np.array(w)
+    w = w*(255.0/np.max(w))
+    w = w.tolist()
+
+    plt.ion()
+    plt.figure()
+    plt.axis([0,180,0,360])
+
     plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
     plt.colorbar()
     plt.grid()
@@ -167,11 +169,25 @@ def plotter(etaInt, ringi):
     
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
+    plt.savefig('eta-phi-map-scatter-scaled-'+str(ringNo)+'.png')
     
-    #plt.show()
+    w = np.array(w)
+    w = 1 + np.log10(w)
+    w = w.tolist()
     
-    plt.savefig('eta-phi-map-scatter'+str(ringNo)+'.png')
+    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
+    plt.colorbar()
+    plt.grid()
 
+    plt.ion()
+    plt.figure()
+    plt.axis([0,180,0,360])
+    plt.xlabel(r'$\phi$', fontdict = font)
+    
+    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
+    plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
+    plt.savefig('eta-phi-map-scatter-logged-'+str(ringNo)+'.png')
+    
 
 def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0, toler = 60,
               size = (2048,2048), header = 8192, frameSize = 2*2048**2):
@@ -254,7 +270,7 @@ def convertBin(im_data_hex, bg, size = (2048,2048)):
 
 def main():
     i = int(sys.argv[1])
-    if i < 10 and i > 0:
+    if i < 11 and i >= 0:
         makeMap(i) # makes etaphi maps of each ring
     else:
         return
