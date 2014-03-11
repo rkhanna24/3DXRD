@@ -117,10 +117,6 @@ def plotter(etaInt, ringi):
     e = []
     p = []
     w = []
-    
-    plt.ion()
-    plt.figure()
-    plt.axis([0,180,0,360])
     for i in range(3600):
         ei = np.argwhere(etaInt[:,i]) # grabs the nonzero etas for the current phi
         pi = i/20.0 # converts the phi to be from 0 to 180 instead of from 0 to 3600
@@ -134,21 +130,18 @@ def plotter(etaInt, ringi):
             p.append(pi[j])
             w.append(wi[j,0])
             
-            
     etaArr = np.array([e,p,w]).T
     np.savetxt('eta-phi-map-list-'+str(ringNo)+'.csv', etaArr, delimiter=',')
-    
+
     # makes a scatter plot with the phi as the x coordinates, eta as the y coordinates and
     # integrated etas as the weights
-    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
-    plt.colorbar()
-    plt.grid()
-
     plt.ion()
     plt.figure()
     plt.axis([0,180,0,360])
+    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
+    plt.colorbar()
+    plt.grid()
     plt.xlabel(r'$\phi$', fontdict = font)
-    
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
     plt.savefig('eta-phi-map-scatter-'+str(ringNo)+'.png')
@@ -160,13 +153,10 @@ def plotter(etaInt, ringi):
     plt.ion()
     plt.figure()
     plt.axis([0,180,0,360])
-
     plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
     plt.colorbar()
     plt.grid()
-    
     plt.xlabel(r'$\phi$', fontdict = font)
-    
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
     plt.savefig('eta-phi-map-scatter-scaled-'+str(ringNo)+'.png')
@@ -174,16 +164,14 @@ def plotter(etaInt, ringi):
     w = np.array(w)
     w = 1 + np.log10(w)
     w = w.tolist()
-    
-    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
-    plt.colorbar()
-    plt.grid()
 
     plt.ion()
     plt.figure()
     plt.axis([0,180,0,360])
+    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
+    plt.colorbar()
+    plt.grid()
     plt.xlabel(r'$\phi$', fontdict = font)
-    
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
     plt.savefig('eta-phi-map-scatter-logged-'+str(ringNo)+'.png')

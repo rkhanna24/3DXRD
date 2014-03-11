@@ -14,11 +14,6 @@ i = int(sys.argv[1])
 print i
 print type(i)
 
-sys.stdout.write("Making Map: {0}".format(i))
-sys.stdout.write("Making Map: {0}\n".format(i))
-sys.stdout.write("Making Map: {0}\n".format(i))
-sys.stdout.write("Making Map: {0}".format(i))
-
 #font = {'family': 'serif',
 #            'color': 'black',
 #            'weight': 'normal',
