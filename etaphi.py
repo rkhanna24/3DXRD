@@ -25,7 +25,7 @@ import time
 Edit the following parameters below to fit your tests
 """
 
-params = 'circles.out' # information about the ring, centerX, centerY, radius
+params = '~/Rohan/data/circles.csv' # information about the ring, centerX, centerY, radius
 directory = '/media/Argonne Backup/FFfine/' #directory of the files
 bgFile = directory + 'Ti7Test_00017.ge2' #filename of the background file
 filePrefix = 'Ti7_PreHRM_PreLoad__005' #prefix of each file
@@ -111,7 +111,7 @@ def plotter(etaInt, ringi):
     
     etaInt = np.flipud(etaInt) # the eta-phi array is flipped across the horizontal 
                                # because the origin is at the top left prior to the flip 
-    np.savetxt('eta-phi-map-arr-'+str(ringNo)+'.csv', etaInt, delimiter=',')
+    np.savetxt('~/Rohan/data/eta-phi-map-arr-'+str(ringNo)+'.csv', etaInt, delimiter=',')
     
     
     e = []
@@ -131,7 +131,7 @@ def plotter(etaInt, ringi):
             w.append(wi[j,0])
             
     etaArr = np.array([e,p,w]).T
-    np.savetxt('eta-phi-map-list-'+str(ringNo)+'.csv', etaArr, delimiter=',')
+    np.savetxt('~/Rohan/data/eta-phi-map-list-'+str(ringNo)+'.csv', etaArr, delimiter=',')
 
     # makes a scatter plot with the phi as the x coordinates, eta as the y coordinates and
     # integrated etas as the weights
@@ -144,7 +144,7 @@ def plotter(etaInt, ringi):
     plt.xlabel(r'$\phi$', fontdict = font)
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-    plt.savefig('eta-phi-map-scatter-'+str(ringNo)+'.png')
+    plt.savefig('~/Rohan/images/eta-phi-map-scatter-'+str(ringNo)+'.png')
     
     w = np.array(w)
     w = w*(255.0/np.max(w))
@@ -159,7 +159,7 @@ def plotter(etaInt, ringi):
     plt.xlabel(r'$\phi$', fontdict = font)
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-    plt.savefig('eta-phi-map-scatter-scaled-'+str(ringNo)+'.png')
+    plt.savefig('~/Rohan/images/eta-phi-map-scatter-scaled-'+str(ringNo)+'.png')
     
     w = np.array(w)
     w = 1 + np.log10(w)
@@ -174,7 +174,7 @@ def plotter(etaInt, ringi):
     plt.xlabel(r'$\phi$', fontdict = font)
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-    plt.savefig('eta-phi-map-scatter-logged-'+str(ringNo)+'.png')
+    plt.savefig('~/Rohan/images/eta-phi-map-scatter-logged-'+str(ringNo)+'.png')
     
 
 def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0, toler = 60,
