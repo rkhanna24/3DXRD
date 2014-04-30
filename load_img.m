@@ -232,7 +232,3 @@ if cosmic_remove ~= 0
         img = remove_cosmic_ray(img);
     end
 end
-
-
-
-
