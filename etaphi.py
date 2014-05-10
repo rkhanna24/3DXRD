@@ -31,6 +31,9 @@ bgFile = directory + 'Ti7Test_00017.ge2' #filename of the background file
 filePrefix = 'Ti7_PreHRM_PreLoad__005' #prefix of each file
 ring = np.loadtxt(params,delimiter = ',') # loads the ring params into an array
 
+imDirectory = '/home/tempuser/Rohan/Images/'
+dataDirectory = '/home/tempuser/Rohan/Data/'
+
 lowerID = 53 # ID of first binary
 upperID = 70 # ID of last binary
 
@@ -96,8 +99,8 @@ def plotter(etaInt, ringi):
     @param etaInt array containing the eta-phi map data for the ring
     @param ringi int identifying the current ring
     
-    This function plots the etaphi map as a scatter plot and saves it to the 
-    current directory.
+    This function plots the etaphi map as a scatter plot saves it to the 
+    current directory, and saves the array as csv files.
     """
     
     sys.stdout.write("Writing Images and Arrays: {0}\n".format(ringi))
@@ -111,7 +114,7 @@ def plotter(etaInt, ringi):
     
     etaInt = np.flipud(etaInt) # the eta-phi array is flipped across the horizontal 
                                # because the origin is at the top left prior to the flip 
-    np.savetxt('/home/tempuser/Rohan/data/eta-phi-map-arr-'+str(ringNo)+'.csv', etaInt, delimiter=',')
+    np.savetxt(dataDirectory+'eta-phi-map-arr-'+str(ringNo)+'.csv', etaInt, delimiter=',')
     
     
     e = []
@@ -131,7 +134,7 @@ def plotter(etaInt, ringi):
             w.append(wi[j,0])
             
     etaArr = np.array([e,p,w]).T
-    np.savetxt('/home/tempuser/Rohan/data/eta-phi-map-list-'+str(ringNo)+'.csv', etaArr, delimiter=',')
+    np.savetxt(dataDirectory+'eta-phi-map-list-'+str(ringNo)+'.csv', etaArr, delimiter=',')
 
     # makes a scatter plot with the phi as the x coordinates, eta as the y coordinates and
     # integrated etas as the weights
@@ -145,36 +148,6 @@ def plotter(etaInt, ringi):
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
     plt.savefig('/home/tempuser/Rohan/images/eta-phi-map-scatter-'+str(ringNo)+'.png')
-    
-    w = np.array(w)
-    w = w*(255.0/np.max(w))
-    w = w.tolist()
-
-    plt.ion()
-    plt.figure()
-    plt.axis([0,180,0,360])
-    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
-    plt.colorbar()
-    plt.grid()
-    plt.xlabel(r'$\phi$', fontdict = font)
-    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
-    plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-    plt.savefig('/home/tempuser/Rohan/images/eta-phi-map-scatter-scaled-'+str(ringNo)+'.png')
-    
-    w = np.array(w)
-    w = 1 + np.log10(w)
-    w = w.tolist()
-
-    plt.ion()
-    plt.figure()
-    plt.axis([0,180,0,360])
-    plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
-    plt.colorbar()
-    plt.grid()
-    plt.xlabel(r'$\phi$', fontdict = font)
-    plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
-    plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-    plt.savefig('/home/tempuser/Rohan/images/eta-phi-map-scatter-logged-'+str(ringNo)+'.png')
     
 
 def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0, toler = 60,
