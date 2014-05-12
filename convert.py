@@ -19,16 +19,16 @@ import sys
 """
 Edit the following parameters below to fit your tests
 """
-imDirectory = '/home/tempuser/Rohan/Images/53-70/'
-dataDirectory = '/home/tempuser/Rohan/Data/53-70/'
+imDirectory = '/home/tempuser/Rohan/Images/62-79/'
+dataDirectory = '/home/tempuser/Rohan/Data/62-79/'
 
 directory = '/media/Argonne Backup/FFfine/'
 bgFile = directory + 'Ti7Test_00017.ge2'
-filePrefix = 'Ti7_PreHRM_PreLoad__005'
+filePrefix = 'Ti7_PreHRM_PreLoad__003'
 output = 'ring'
 
-minID = 53 # ID of first binary
-maxID = 70 # ID of last binary
+lowerID = 62 # ID of first binary
+upperID = 79 # ID of last binary
 """
 No need to edit below this line
 """
@@ -54,7 +54,6 @@ def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0,
     IDs = np.uint8(IDs)
 
     im = np.zeros(size)
-    pBar = bar
     for ID in IDs:
         if ID == 0:
             IDstr = ''
@@ -97,12 +96,11 @@ def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True
         # creates an mxnx3 array of zeros of type uint8; this array will store 
         #   the RGB values that will be converted to an image
         rgbArr = np.zeros((size[0],size[0],3),dtype = 'uint8')
-        sys.stdout.write("Converting to Image")
+        sys.stdout.write("Converting to Image\n")
         for i in range(size[0]):
             for j in range(size[0]):
                 # Converts intensity to pixel
                 rgbArr[i,j] = toRGB(image_data[i][j],maxI)
-        sys.stdout.write("\n")
         image = Image.fromarray(rgbArr,'RGB')
         # Saves image to output director provided
         image.save(imDirectory + outputim + ".png")
@@ -116,7 +114,7 @@ def writeGE(image_data, directory, filePrefix, outputbin, lowerID,
         saves it to the directory specified, in order to make it easier to obtain
         intensity data
     """
-    print("Writing image")
+    sys.stdout.write("Writing Image\n")
     image_data.shape = size[0]**2
     fmt = 'H'*len(image_data)
     im_hex = struct.pack(fmt,*image_data)
@@ -133,7 +131,7 @@ def writeGE(image_data, directory, filePrefix, outputbin, lowerID,
     f.write(head)
     f.write(im_hex)
     f.close()
-    print "COMPLETE"
+    sys.stdout.write("Complete \n")
 
 def combineFrames(im_data, bg, filename, size = (2048,2048),
                   offset = 8192, frameSize = 2*2048**2):
@@ -150,14 +148,13 @@ def combineFrames(im_data, bg, filename, size = (2048,2048),
 
     f = open(filename,'rb')
     f.seek(offset)
-    sys.stdout.write("Converting File: {0}".format(filename))
+    sys.stdout.write("Converting File: {0}\n".format(filename))
     while(True):
         im_data_hex = f.read(frameSize)
         if(len(im_data_hex) == 0):
             break
         temp = convertBin(im_data_hex, bg, size)
         im_data = np.maximum(im_data, temp)
-    sys.stdout.write("\n")
     f.close()
     return im_data
 

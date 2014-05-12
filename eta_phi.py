@@ -144,7 +144,7 @@ def plotter(etaInt, ringi):
     plt.xlabel(r'$\phi$', fontdict = font)
     plt.ylabel(r'$\eta$',rotation = 0, fontdict = font)
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
-    plt.savefig('/home/tempuser/Rohan/images/eta-phi-map-scatter-'+str(ringNo)+'.png')
+    plt.savefig(imDirectory+'eta-phi-map-'+str(ringNo)+'.png')
     plt.close()
     
 
@@ -226,14 +226,6 @@ def convertBin(im_data_hex, bg, size = (2048,2048)):
     image_data = np.clip(image_data,0, 2**16 - 1)
     image_data = np.uint16(image_data)
     return image_data
-
-#def main():
-#    i = int(sys.argv[1])
-#    if i < 11 and i >= 0:
-#        makeMap(i) # makes etaphi maps of each ring
-#    else:
-#        return
-#
 
 def make(ID):
     if ID == 0:
