@@ -10,9 +10,76 @@ Guesses of the radii of each ring need to be determined.
 
 """
 
-
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+import Image
+import sys
+import os
 
+"""
+Edit the following parameters below to fit your tests
+"""
+imDirectory = '/home/tempuser/Rohan/Images/'
+dataDirectory = '/home/tempuser/Rohan/Data/'
+
+filename = 'ring'
+
+header = 8192
+size = (2048,2048)
+
+# guesses is an array of estimates of the parameters of each ring
+ringsNo = 11
+guesses = np.zeros((ringsNo,5))
+guesses[:,0:2] = [1024.0,1024.0] # center coordinate of each ring
+# lower bound on estimate on radius, guess of radius, upper bound on estimate of radius
+guesses[0,2:5] = [410.0,420.0,440.0] 
+guesses[1,2:5] = [445.0,460.0,470.0]
+guesses[2,2:5] = [470.0,485.0,500.0]
+guesses[3,2:5] = [615.0,635.0,650.0]
+guesses[4,2:5] = [715.0,735.0,760.0]
+guesses[5,2:5] = [800.0,820.0,840.0]
+guesses[6,2:5] = [845.0,855.0,863.0]
+guesses[7,2:5] = [867.0,869.0,880.8]
+guesses[8,2:5] = [883.0,897.0,901.0]
+guesses[9,2:5] = [910.0,925.0,945.0]
+guesses[10,2:5] = [955.0,975.0,995.0]
+
+"""
+No need to edit below this line
+"""
+
+if len(sys.argv) != 3:
+    sys.stdout.write("\nPlease only enter 2 integers specifying the lowerID and the upperID.\n\n")
+    sys.exit()
+
+lowerID = int(sys.argv[1]) # ID of first binary
+upperID = int(sys.argv[2]) # ID of last binary
+
+if lowerID < 0 or upperID < 0 or lowerID > upperID:
+    sys.stdout.write("\nPlease make sure the IDs are positive\nand that the lowerID is <= upperID\n\n")
+    sys.exit()
+    
+imDirectory = imDirectory + str(lowerID) + '-' + str(upperID) + '/'
+dataDirectory = dataDirectory + str(lowerID) + '-' + str(upperID) + '/'
+
+if not os.path.exists(imDirectory):
+    inChar = raw_input("\nDirectory for Images:\n{0}\ndoes not exist. Create it? [y/n]:".format(imDirectory))
+    if inChar == 'y' or inChar == 'Y':
+        os.makedirs(dataDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+    else:
+        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.exit()
+if not os.path.exists(dataDirectory):
+    inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
+    if inChar == 'y' or inChar == 'Y':
+        os.makedirs(dataDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+    else:
+        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.exit()
+        
 def getCircles(guess,ringi):
     """
     @param guess The array of guesses for each ring
@@ -32,7 +99,7 @@ def getCircles(guess,ringi):
     #vector for the intial guess for gauss newton method
     x_0 = np.array([[cx],[cy],[R0]])
     
-    ring1 = np.zeros((2048,2048))
+    ring1 = np.zeros(size)
     
     xi = []
     yi = []
@@ -97,7 +164,6 @@ def gnewtonm(x_0,xi,yi):
         k = k + 1
     return x
 
-
 def convertBin(im_data_hex, bg, size = (2048,2048)):
     """
     @param im_data_hex binary string containing the intensity data
@@ -120,38 +186,95 @@ def convertBin(im_data_hex, bg, size = (2048,2048)):
     image_data = np.uint16(image_data)
     return image_data
 
+def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True):
+    """
+    @param im_data uint16 array containing intensities from binary files
+    
+    This function converts the intensity data from all files into an image and saves it
+    """
+    
+    """
+    Plots the intensity data using matplotlib; faster but high resolution is lost
+    """
+    # Removes values below a threshold to make the background of the ring images
+    #   black
+    image_data.shape = size
+    plt.imshow(np.minimum(stats.threshold(image_data,threshmin=threshold, newval=0), 255 + 0*image_data))
+    # Specifies the color map; can be modified if you want!
+    plt.hot()
+    # Saves image to output directory
+    plt.savefig(imDirectory + outputim + "-lo.png")
+
+    """
+    Plots the intensity map by converting intensities to RGB values; slower  
+        but has higher resolution
+    """
+    # Only does this if desired
+    if(rgb):
+        # Determines max intensity for the gradient
+        maxI = np.max(image_data)
+        # creates an mxnx3 array of zeros of type uint8; this array will store 
+        #   the RGB values that will be converted to an image
+        rgbArr = np.zeros((size[0],size[0],3),dtype = 'uint8')
+        sys.stdout.write("Converting to Image\n")
+        for i in range(size[0]):
+            for j in range(size[0]):
+                # Converts intensity to pixel
+                rgbArr[i,j] = toRGB(image_data[i][j],maxI)
+        image = Image.fromarray(rgbArr,'RGB')
+        # Saves image to output director provided
+        image.save(imDirectory + outputim + ".png")
+        
+def toRGB(a, maxI, threshold = 60):
+    """
+    @param a intensity to be converted to RGB values
+    @param maxI maximum intensity of the entire data, used to make gradient
+    
+    @ return [r,g,b] uint8 red,green,blue values
+    
+    This function converts uint16's to red, green, values where each channel 
+    occupies 1 byte. Converts the intensity according to a gradient.
+    """   
+    # If the intensity is below the threshold, set its corresponding pixel to be
+    #   completely black
+    if a <= threshold:
+        return [0,0,0]
+    else:
+
+        """
+        Specifies a simple linear gradient from completely black to completely
+        white. Can be modified to make a more interesting gradient if desired!
+        """
+        # Maximum intensity is a completely white pixel
+        white = 0xFFFFFF
+        slope = white/maxI
+        color = np.int(slope*a)
+        """
+        Converts uint16 to pixel by assuming each channel occupies 4 bits. 
+        This can be modified to either: 5-5-5: each channel occupies 5 bits 
+                                     or 5-6-6: red and blue occupy 5 bits 
+                                             while green occupies 6 bits
+        """
+        r = (color >> 8) & 0xFF
+        g = (color >> 4) & 0xFF
+        b = (color >> 0) & 0xFF
+        return [r,g,b]
 # this file contains all the intensity data in one binary file
-filename = 'ring'
-offset = 8192
-size = (2048,2048)
+if __name__ == "__main__":
+    f = open(dataDirectory + filename,'rb')
+    f.seek(header)
+    image_data = f.read()
+    image_data = np.double(convertBin(image_data,np.zeros(size)))
+    f.close()
 
-f = open(filename,'rb')
-f.seek(offset)
-image_data = f.read()
-image_data = np.double(convertBin(image_data,np.zeros(size)))
-f.close()
+    # circles is the parameter array containing the true center and true radius
+    circles = np.zeros((ringsNo,3)) 
+    ringi = np.zeros(size)
+    for i in range(ringsNo):
+        circles[i,:],ringi = getCircles(guesses[i,:],ringi)
 
-# guesses is an array of estimates of the parameters of each ring
-guesses = np.zeros((11,5))
-guesses[:,0:2] = [1024.0,1024.0] # center coordinate of each ring
-# lower bound on estimate on radius, guess of radius, upper bound on estimate of radius
-guesses[0,2:5] = [410.0,420.0,440.0] 
-guesses[1,2:5] = [445.0,460.0,470.0]
-guesses[2,2:5] = [470.0,485.0,500.0]
-guesses[3,2:5] = [615.0,635.0,650.0]
-guesses[4,2:5] = [715.0,735.0,760.0]
-guesses[5,2:5] = [800.0,820.0,840.0]
-guesses[6,2:5] = [845.0,855.0,863.0]
-guesses[7,2:5] = [867.0,869.0,880.8]
-guesses[8,2:5] = [883.0,897.0,901.0]
-guesses[9,2:5] = [910.0,925.0,945.0]
-guesses[10,2:5] = [955.0,975.0,995.0]
-
-# circles is the parameter array containing the true center and true radius
-circles = np.zeros((11,3)) 
-ringi = np.zeros((2048,2048))
-for i in range(11):
-    circles[i,:],ringi = getCircles(guesses[i,:],ringi)
-
-#writes the ring parameters to a file to be read by etaphi.py
-np.savetxt('circles.out', circles, delimiter=',') 
+    outputim = filename + str(1) +'-' + str(ringsNo)
+    
+    toImage(ringi, outputim);
+    #writes the ring parameters to a file to be read by etaphi.py
+    np.savetxt(dataDirectory + 'circles.csv', circles, delimiter=',') 

@@ -18,31 +18,66 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import sys
+import os
 import multiprocessing
 
 """
 Edit the following parameters below to fit your tests
 """
-imDirectory = '/home/tempuser/Rohan/Images/53-70/'
-dataDirectory = '/home/tempuser/Rohan/Data/53-70/'
+imDirectory = '/home/tempuser/Rohan/Images/'
+dataDirectory = '/home/tempuser/Rohan/Data/'
 
-params = dataDirectory + 'circles.csv' # information about the ring, centerX, centerY, radius
-
+params = 'circles.csv'
 directory = '/media/Argonne Backup/FFfine/' #directory of the files
 bgFile = directory + 'Ti7Test_00017.ge2' #filename of the background file
-filePrefix = 'Ti7_PreHRM_PreLoad__005' #prefix of each file
-ring = np.loadtxt(params,delimiter = ',') # loads the ring params into an array
-
-lowerID = 53 # ID of first binary
-upperID = 70 # ID of last binary
+filePrefix = 'Ti7_PreHRM_PreLoad__00' #prefix of each file
 
 """
 No need to edit below this line
 """
 
+if len(sys.argv) != 3:
+    sys.stdout.write("\nPlease only enter 2 integers specifying the lowerID and the upperID.\n\n")
+    sys.exit()
+
+lowerID = int(sys.argv[1]) # ID of first binary
+upperID = int(sys.argv[2]) # ID of last binary
+
+if lowerID < 0 or upperID < 0 or lowerID > upperID:
+    sys.stdout.write("\nPlease make sure the IDs are positive\nand that the lowerID is <= upperID\n\n")
+    sys.exit()
+    
+imDirectory = imDirectory + str(lowerID) + '-' + str(upperID) + '/'
+dataDirectory = dataDirectory + str(lowerID) + '-' + str(upperID) + '/'
+
+
+if not os.path.exists(directory):
+    sys.stdout.write("\nInput directory does not exist. Please modify it.\n\n")
+    sys.exit()
+
+if not os.path.exists(imDirectory):
+    inChar = raw_input("\nDirectory for Images:\n{0}\ndoes not exist. Create it? [y/n]:".format(imDirectory))
+    if inChar == 'y' or inChar == 'Y':
+        os.makedirs(dataDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+    else:
+        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.exit()
+if not os.path.exists(dataDirectory):
+    inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
+    if inChar == 'y' or inChar == 'Y':
+        os.makedirs(dataDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+    else:
+        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.exit()
+        
 IDs = np.linspace(lowerID, upperID, upperID - lowerID + 1)
 IDs = np.uint8(IDs) # creates an array of each ID to be iterated over in the loops
+params = dataDirectory + params # information about the ring, centerX, centerY, radius
+ring = np.loadtxt(params,delimiter = ',') # loads the ring params into an array
 
+ringsNo = ring.shape[0]
 a = np.arange(0,2048)
 yy = np.tile(a,[2048,1])
 a.shape = [2048,1]
@@ -229,7 +264,7 @@ def convertBin(im_data_hex, bg, size = (2048,2048)):
 
 def make(ID):
     if ID == 0:
-        for i in range(0,3):
+        for i in range(0,ringsNo/3):
             makeMap(i)
     elif ID == 1:
         for i in range(3,6):
@@ -240,8 +275,8 @@ def make(ID):
     elif ID == 3:
         for i in range(9,11):
             makeMap(i)
-        
-if __name__ == "__main__":
+    
+def main():
     procs = 4
     jobs = []
     for i in range(0,procs):
@@ -255,3 +290,6 @@ if __name__ == "__main__":
         j.join()
         
     print "Processing Complete"
+
+if __name__ == "__main__":
+    main()

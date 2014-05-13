@@ -13,25 +13,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import Image
+import os
 import struct
 import sys
 
 """
 Edit the following parameters below to fit your tests
 """
-imDirectory = '/home/tempuser/Rohan/Images/62-79/'
-dataDirectory = '/home/tempuser/Rohan/Data/62-79/'
+imDirectory = '/home/tempuser/Rohan/Images/'
+dataDirectory = '/home/tempuser/Rohan/Data/'
 
 directory = '/media/Argonne Backup/FFfine/'
 bgFile = directory + 'Ti7Test_00017.ge2'
-filePrefix = 'Ti7_PreHRM_PreLoad__003'
+filePrefix = 'Ti7_PreHRM_PreLoad__00'
 output = 'ring'
-
-lowerID = 62 # ID of first binary
-upperID = 79 # ID of last binary
 """
 No need to edit below this line
 """
+
+if len(sys.argv) != 3:
+    sys.stdout.write("\nPlease only enter 2 integers specifying the lowerID and the upperID.\n\n")
+    sys.exit()
+
+lowerID = int(sys.argv[1]) # ID of first binary
+upperID = int(sys.argv[2]) # ID of last binary
+
+if lowerID < 0 or upperID < 0 or lowerID > upperID:
+    sys.stdout.write("\nPlease make sure the IDs are positive\nand that the lowerID is <= upperID\n\n")
+    sys.exit()
+    
+imDirectory = imDirectory + str(lowerID) + '-' + str(upperID) + '/'
+dataDirectory = dataDirectory + str(lowerID) + '-' + str(upperID) + '/'
+
+
+if not os.path.exists(directory):
+    sys.stdout.write("\nInput directory does not exist. Please modify it.\n\n")
+    sys.exit()
+
+if not os.path.exists(imDirectory):
+    inChar = raw_input("\nDirectory for Images:\n{0}\ndoes not exist. Create it? [y/n]:".format(imDirectory))
+    if inChar == 'y' or inChar == 'Y':
+        os.makedirs(dataDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+    else:
+        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.exit()
+if not os.path.exists(dataDirectory):
+    inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
+    if inChar == 'y' or inChar == 'Y':
+        os.makedirs(dataDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+    else:
+        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.exit()
+        
+IDs = np.linspace(lowerID, upperID, upperID - lowerID + 1)
+IDs = np.uint8(IDs) # creates an array of each ID to be iterated over in the loops
 
 def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0, 
             size = (2048,2048), header = 8192):
@@ -81,7 +118,7 @@ def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True
     plt.imshow(np.minimum(stats.threshold(image_data,threshmin=threshold, newval=0), 255 + 0*image_data))
     # Specifies the color map; can be modified if you want!
     plt.hot()
-    plt.axis('off')
+    plt.grid()
     # Saves image to output directory
     plt.savefig(imDirectory + outputim + "-lo.png")
 
@@ -213,5 +250,4 @@ def toRGB(a, maxI, threshold = 60):
 if __name__ == "__main__":
     im = readGE(directory, filePrefix, bgFile, lowerID, upperID)
     toImage(im, output)
-    np.savetxt(dataDirectory + output + '.csv', im, delimiter=',')
-    # writeGE(im,directory,filePrefix,output,lowerID)
+    writeGE(im,directory,filePrefix,output,lowerID)
