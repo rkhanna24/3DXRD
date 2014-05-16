@@ -8,9 +8,11 @@ The following script converts the intensity data in all frames to eta-phi maps
 for each ring.
 This requires the rings parameters to be written to a file in the format:
         x-coordinate of center, y-coordinate of center, radius
-This function is meant to be run in the python shell, with an argument 
-provided indicating the ring to be processed.
-    Ex: python etaphi.py 1
+
+If the files range from < 100 to > 100 i.e. the file IDs are:
+    097 098 099 100 101
+Then the prefix will need to be manually adjusted OR the file IDs need to be
+    adjusted.
 
 """
 
@@ -32,6 +34,8 @@ directory = '/media/Argonne Backup/FFfine/' #directory of the files
 bgFile = directory + 'Ti7Test_00017.ge2' #filename of the background file
 filePrefix = 'Ti7_PreHRM_PreLoad__00' #prefix of each file
 
+axisRange = [-180.0,180.0,0,360.0]
+noFramesPerFile = 180
 """
 No need to edit below this line
 """
@@ -61,7 +65,7 @@ if not os.path.exists(imDirectory):
         os.makedirs(dataDirectory)
         sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
     else:
-        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
 if not os.path.exists(dataDirectory):
     inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
@@ -69,11 +73,12 @@ if not os.path.exists(dataDirectory):
         os.makedirs(dataDirectory)
         sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
     else:
-        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
         
-IDs = np.linspace(lowerID, upperID, upperID - lowerID + 1)
-IDs = np.uint8(IDs) # creates an array of each ID to be iterated over in the loops
+IDs = np.arange(lowerID,upperID + 1)
+if lowerID < 100:
+    filePrefix = filePrefix + '0'
 params = dataDirectory + params # information about the ring, centerX, centerY, radius
 ring = np.loadtxt(params,delimiter = ',') # loads the ring params into an array
 
@@ -82,6 +87,8 @@ a = np.arange(0,2048)
 yy = np.tile(a,[2048,1])
 a.shape = [2048,1]
 xx = np.tile(a, [1,2048])
+
+noFrames = len(IDs)*noFramesPerFile
 
 def makeMap(ringi):
     """
@@ -111,14 +118,14 @@ def makeMap(ringi):
     eei = np.ceil(ee.T[ii.T]) # the transposes are necessary for compatability with MATLAB
     eei[eei == 360] = 359
     
-    etaInt = np.zeros((360,3600))
+    etaInt = np.zeros((360,noFrames))
     tol = 500
     k = 0
     
     sys.stdout.write("Making Map: {0}\n".format(ringi))
     
     for ID in IDs:
-        for i in range(1,201):
+        for i in range(1,noFramesPerFile+1):
             im = getFrame(directory,filePrefix, i, bgFile, ID, toler = tol)
             imc = im.T[ii.T]
             
@@ -153,9 +160,10 @@ def plotter(etaInt, ringi):
     e = []
     p = []
     w = []
-    for i in range(3600):
+    delta = noFrames/(axisRange[1] - axisRange[0])
+    for i in range(noFrames):
         ei = np.argwhere(etaInt[:,i]) # grabs the nonzero etas for the current phi
-        pi = i/20.0 # converts the phi to be from 0 to 180 instead of from 0 to 3600
+        pi = axisRange[0] + i/delta
         pi = np.array([pi]*len(ei)) # makes sure that each eta in ei has a phi
         wi = etaInt[ei,i] # grabs each integrated eta for the current phi
         
@@ -172,7 +180,7 @@ def plotter(etaInt, ringi):
     # makes a scatter plot with the phi as the x coordinates, eta as the y coordinates and
     # integrated etas as the weights
     plt.figure()
-    plt.axis([0,180,0,360])
+    plt.axis(axisRange)
     plt.scatter(p,e,c = w, s = 20, cmap = plt.cm.jet, edgecolors = 'None', alpha = 0.75)
     plt.colorbar()
     plt.grid()
@@ -267,13 +275,13 @@ def make(ID):
         for i in range(0,ringsNo/3):
             makeMap(i)
     elif ID == 1:
-        for i in range(3,6):
+        for i in range(ringsNo/3,(ringsNo/3)*2):
             makeMap(i)
     elif ID == 2:
-        for i in range(6,9):
+        for i in range((ringsNo/3)*2,(ringsNo/3)*3):
             makeMap(i)
     elif ID == 3:
-        for i in range(9,11):
+        for i in range((ringsNo/3)*3,ringsNo):
             makeMap(i)
     
 def main():
@@ -291,5 +299,4 @@ def main():
         
     print "Processing Complete"
 
-if __name__ == "__main__":
-    main()
+main()

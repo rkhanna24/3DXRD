@@ -69,7 +69,7 @@ if not os.path.exists(imDirectory):
         os.makedirs(dataDirectory)
         sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
     else:
-        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
 if not os.path.exists(dataDirectory):
     inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
@@ -77,7 +77,7 @@ if not os.path.exists(dataDirectory):
         os.makedirs(dataDirectory)
         sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
     else:
-        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
         
 def getCircles(guess,ringi):

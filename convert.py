@@ -6,7 +6,12 @@
 
 The following script converts all the frames in all the binary files in one 
 directory to an  image and a binary file containing the intensity data of the
-experiment. 
+experiment.
+
+If the files range from < 100 to > 100 i.e. the file IDs are:
+    097 098 099 100 101
+Then the prefix will need to be manually adjusted OR the file IDs need to be
+    adjusted.
 @TODO Parallilize some loops
 """
 import numpy as np
@@ -53,10 +58,10 @@ if not os.path.exists(directory):
 if not os.path.exists(imDirectory):
     inChar = raw_input("\nDirectory for Images:\n{0}\ndoes not exist. Create it? [y/n]:".format(imDirectory))
     if inChar == 'y' or inChar == 'Y':
-        os.makedirs(dataDirectory)
-        sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
+        os.makedirs(imDirectory)
+        sys.stdout.write('{0} created.\n\n'.format(imDirectory))
     else:
-        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
 if not os.path.exists(dataDirectory):
     inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
@@ -64,12 +69,13 @@ if not os.path.exists(dataDirectory):
         os.makedirs(dataDirectory)
         sys.stdout.write('{0} created.\n\n'.format(dataDirectory))
     else:
-        sys.stdout.write("Please modify the directory and try again.\n\n")
+        sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
         
-IDs = np.linspace(lowerID, upperID, upperID - lowerID + 1)
-IDs = np.uint8(IDs) # creates an array of each ID to be iterated over in the loops
 
+IDs = np.arange(lowerID,upperID + 1)
+if lowerID < 100:
+    filePrefix = filePrefix + '0'
 def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0, 
             size = (2048,2048), header = 8192):
 
@@ -86,10 +92,6 @@ def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0,
         bg = np.double(bg)
     else:
         bg = np.zeros(size)
-
-    IDs = np.linspace(lowerID, upperID, upperID - lowerID + 1)
-    IDs = np.uint8(IDs)
-
     im = np.zeros(size)
     for ID in IDs:
         if ID == 0:
@@ -97,6 +99,7 @@ def readGE(directory, filePrefix, bgFile = '', lowerID = 0 , upperID = 0,
         else:
             IDstr = str(ID)
         filename = directory + filePrefix + IDstr
+        
         temp = combineFrames(im,bg,filename)
         im = np.maximum(im,temp)
     
@@ -164,7 +167,7 @@ def writeGE(image_data, directory, filePrefix, outputbin, lowerID,
     head = f.read(header)
     f.close()
     
-    f = open(outputbin,'wb')
+    f = open(dataDirectory + outputbin,'wb')
     f.write(head)
     f.write(im_hex)
     f.close()
@@ -247,7 +250,7 @@ def toRGB(a, maxI, threshold = 60):
         b = (color >> 0) & 0xFF
         return [r,g,b]
 
-if __name__ == "__main__":
-    im = readGE(directory, filePrefix, bgFile, lowerID, upperID)
-    toImage(im, output)
-    writeGE(im,directory,filePrefix,output,lowerID)
+
+im = readGE(directory, filePrefix, bgFile, lowerID, upperID)
+toImage(im, output)
+writeGE(im,directory,filePrefix,output,lowerID)
