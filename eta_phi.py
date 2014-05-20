@@ -4,16 +4,16 @@
 @Author: Rohan Khanna
 @Date:Fri Nov 21, 2013
 
-The following script converts the intensity data in all frames to eta-phi maps
-for each ring.
-This requires the rings parameters to be written to a file in the format:
-        x-coordinate of center, y-coordinate of center, radius
-
+The following script converts the intensity data in all frames to eta-phi maps for each ring.
+It takes in two integer inputs, lowerID and upperID. The IDs are the unique integers on each file name after the prefix.
+The program can be run by typing:
+    python eta_phi.py lowerID upperID
+in the terminal, in the directory that contains eta_phi.py.
+This requires the parameter file created by radii.py
 If the files range from < 100 to > 100 i.e. the file IDs are:
     097 098 099 100 101
 Then the prefix will need to be manually adjusted OR the file IDs need to be
     adjusted.
-
 """
 
 import numpy as np
@@ -26,40 +26,66 @@ import multiprocessing
 """
 Edit the following parameters below to fit your tests
 """
-imDirectory = '/home/tempuser/Rohan/Images/'
-dataDirectory = '/home/tempuser/Rohan/Data/'
+imDirectory = '/home/tempuser/Rohan/Images/' # Directory where all the images will be saved
+dataDirectory = '/home/tempuser/Rohan/Data/' # Directory where all the data (.csv) will be saved
 
-params = 'circles.csv'
-directory = '/media/Argonne Backup/FFfine/' #directory of the files
-bgFile = directory + 'Ti7Test_00017.ge2' #filename of the background file
-filePrefix = 'Ti7_PreHRM_PreLoad__00' #prefix of each file
+params = 'circles.csv' # Name of the parameter file created by radii.py
+directory = '/media/Argonne Backup/FFfine/' # Directory where the files from the test are located; the input directory
+bgFile = directory + 'Ti7Test_00017.ge2' # Location and name of the background file, if there is one
 
+# Prefix of each file e.g.:
+# Ti7_PreHRM_PreLoad__00553, Ti7_PreHRM_PreLoad__00555, Ti7_PreHRM_PreLoad__00362, Ti7_PreHRM_PreLoad__00043 
+#       have the prefix Ti7_PreHRM_PreLoad__00
+filePrefix = 'Ti7_PreHRM_PreLoad__00'
+
+# eta and phi range:
+# format: [xmin, xmax, ymin, ymax]
+# the x axis represents the phi or omega of the test specimen,
+# the y axis represents the eta of the rings
 axisRange = [-180.0,180.0,0,360.0]
+
+# Number of frames per file
+# noFramesPerFile = (omega_max - omega_min)/noFiles)*dOmega
+#   Where omega_max = xmax
+#         omega_min = xmin
+#         noFiles = number of files produced by the tests
+#         dOmega = change in angle per test
 noFramesPerFile = 180
+
+size = (2048,2048) # Size of the detector in pixels
+header = 8192 # Number of bytes in the header
+threshold = 60 # Threshold below which to ignore intensity values
+# PLEASE READ:
+#   Please make sure that the function makeID(ID) is modified to cover all rings.
 """
 No need to edit below this line
 """
 
-if len(sys.argv) != 3:
+if len(sys.argv) != 3: # Checks if there are only 2 input integers
     sys.stdout.write("\nPlease only enter 2 integers specifying the lowerID and the upperID.\n\n")
     sys.exit()
 
 lowerID = int(sys.argv[1]) # ID of first binary
 upperID = int(sys.argv[2]) # ID of last binary
 
-if lowerID < 0 or upperID < 0 or lowerID > upperID:
+if lowerID < 100 and upperID >= 100:
+    sys.stdout.write("\nIt is not recommended for the IDs to range from < 100 to >= 100.\nI recommend that you change the IDs of the file.\n")
+    inChar = raw_input("Continue? [y/n]\n")
+    if inChar != 'y' and inChar != 'Y':
+        sys.exit()
+
+if lowerID < 0 or upperID < 0 or lowerID > upperID: # Checks if the IDs are positive and in a valid order
     sys.stdout.write("\nPlease make sure the IDs are positive\nand that the lowerID is <= upperID\n\n")
     sys.exit()
     
 imDirectory = imDirectory + str(lowerID) + '-' + str(upperID) + '/'
 dataDirectory = dataDirectory + str(lowerID) + '-' + str(upperID) + '/'
 
-
-if not os.path.exists(directory):
+if not os.path.exists(directory): # Checks if the input directory is valid
     sys.stdout.write("\nInput directory does not exist. Please modify it.\n\n")
     sys.exit()
 
-if not os.path.exists(imDirectory):
+if not os.path.exists(imDirectory): # Checks if the image directory exists, and if it doesnt, it asks for permission to create it
     inChar = raw_input("\nDirectory for Images:\n{0}\ndoes not exist. Create it? [y/n]:".format(imDirectory))
     if inChar == 'y' or inChar == 'Y':
         os.makedirs(dataDirectory)
@@ -67,7 +93,7 @@ if not os.path.exists(imDirectory):
     else:
         sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
-if not os.path.exists(dataDirectory):
+if not os.path.exists(dataDirectory):  # Checks if the data directory exists, and if it doesnt, it asks for permission to create it
     inChar = raw_input("\nDirectory for Data:\n{0}\ndoes not exist. Create it? [y/n]:".format(dataDirectory))
     if inChar == 'y' or inChar == 'Y':
         os.makedirs(dataDirectory)
@@ -76,24 +102,52 @@ if not os.path.exists(dataDirectory):
         sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
         
-IDs = np.arange(lowerID,upperID + 1)
-if lowerID < 100:
+IDs = np.arange(lowerID,upperID + 1) # Creates a list of IDs which correspond to each file
+
+ # Adds an extra 0 to the file prefix, if the IDs are less than 0
+ # If the IDs range from less than 100 to greater than 100 (e.g. 90-105) then:
+ #      manually adjust the filePrefix accordingly (not recommended)
+ #      change the IDs of the file to be either less than 100 or greater than 100
+if lowerID < 100 and upperID < 100:
     filePrefix = filePrefix + '0'
+
 params = dataDirectory + params # information about the ring, centerX, centerY, radius
+if not os.path.isfile(params):
+    sys.stdout.write("Cannot find the parameter file: {0}. Check if it is in the right directory.".format(params))
+    sys.exit()
+
 ring = np.loadtxt(params,delimiter = ',') # loads the ring params into an array
 
 ringsNo = ring.shape[0]
-a = np.arange(0,2048)
-yy = np.tile(a,[2048,1])
-a.shape = [2048,1]
-xx = np.tile(a, [1,2048])
+a = np.arange(0,size[0])
+yy = np.tile(a,[size[0],1])
+a.shape = [size[0],1]
+xx = np.tile(a, [1,size[0]])
 
 noFrames = len(IDs)*noFramesPerFile
+
+frameSize = 2*size[0]**2
+
+#converts the background file to a uint16 array
+if(len(bgFile) != 0):
+    if not os.path.isfile(bgFile):
+        sys.stdout.write("Cannot find the background file: {0}. Check if it is in the right directory.".format(bgFile))
+        sys.exit()
+    bg_file = open(bgFile, 'rb')
+    bg_file.seek(header)
+    bg = bg_file.read(frameSize)
+    bg_file.close()
+
+    bg = np.fromstring(bg, dtype = 'uint16')
+    bg.shape = size
+    bg = np.double(bg)
+else:
+    bg = np.zeros(size)
 
 def makeMap(ringi):
     """
     @param ringi int identifying the current ring to convert to eta phi map. 
-                Needed to obtain the center coordinates and radius of the ring 
+                Necessary in order to obtain the center coordinates and radius of the ring 
                 to be converted.
 
     This function makes an etaphi map out of the current ring. 
@@ -126,7 +180,7 @@ def makeMap(ringi):
     
     for ID in IDs:
         for i in range(1,noFramesPerFile+1):
-            im = getFrame(directory,filePrefix, i, bgFile, ID, toler = tol)
+            im = getFrame(i,ID)
             imc = im.T[ii.T]
             
             for j in range(len(imc)):
@@ -140,7 +194,7 @@ def plotter(etaInt, ringi):
     @param etaInt array containing the eta-phi map data for the ring
     @param ringi int identifying the current ring
     
-    This function plots the etaphi map as a scatter plot saves it to the 
+    This function plots the etaphi map as a scatter plot, saves it to the 
     current directory, and saves the array as csv files.
     """
     
@@ -189,47 +243,23 @@ def plotter(etaInt, ringi):
     plt.title(r'$\eta$-$\phi$ Map, Ring '+str(ringNo), fontdict = font)
     plt.savefig(imDirectory+'eta-phi-map-'+str(ringNo)+'.png')
     plt.close()
-    
 
-def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0, toler = 60,
-              size = (2048,2048), header = 8192, frameSize = 2*2048**2):
+def getFrame(frameNo, ID):
     """
-    @param directory string identifying the directory of all the binary files
-    @param filePrefix string identifying the prefix in the file name of all the 
-                binary files, if no common prefix a method to access each file 
-                has to be created.
-    @param frameNo int identifying the number of the frame in one file desired;
-                ranges from 1-200
-    @param bfile string identifying the file name of the background file
+
+    @param frameNo int identifying the number of the frame in one file desired
     @param ID int identifying the binary file currently being accessesed, suffix
-                of the filename of the binary files
-    @param toler int minimum tolerance on the intensity data
-    @param size tuple containing the dimensions of the output image
-    @param header int number of bytes in the header of each binary file
-    @param frameSize int number of bytes in each frame
-    @return image_data uint16 array containing the intensity data of one frame 
+                of the filename of the binary file
+
+    @return im uint16 array containing the intensity data of one frame 
             with the background subtracted off and intensity above the threshold 
 
     This function returns the desired frame with the intensity data above the
     threshold and the background data subtracted off.
     """
-
-    frameSize = 2*size[0]**2
-    #converts the background file to a uint16 array
-    if(len(bgFile) != 0):
-        bg_file = open(bgFile, 'rb')
-        bg_file.seek(header)
-        bg = bg_file.read(frameSize)
-        bg_file.close()
-
-        bg = np.fromstring(bg, dtype = 'uint16')
-        bg.shape = size
-        bg = np.double(bg)
-    else:
-        bg = np.zeros(size)
         
     im = np.zeros(size)
-    
+
     if ID == 0:
         IDstr = ''
     else:
@@ -237,18 +267,20 @@ def getFrame(directory, filePrefix, frameNo = 1, bgFile = '', ID = 0, toler = 60
         
     filename = directory + filePrefix + IDstr
     # reads the frame from the binary file into a string to be converted
+    if not os.path.isfile(filename):
+        sys.stdout.write("Cannot find the file: {0}. Check if it is in the right directory, or the filePrefix is correct.".format(filename))
+        sys.exit()
     f = open(filename,'rb')
     offset = header + (frameNo - 1)*frameSize
     f.seek(offset)
     im_data_hex = f.read(frameSize)
-    im = convertBin(im_data_hex, bg, size)
+    im = convertBin(im_data_hex)
      
     f.close()
-    im = stats.threshold(im,threshmin = toler, newval = 0)
+    im = stats.threshold(im,threshmin = threshold, newval = 0)
     return im
 
-
-def convertBin(im_data_hex, bg, size = (2048,2048)):
+def convertBin(im_data_hex):
     """
     @param im_data_hex binary string containing the intensity data
     @param bg uint16 array containing the intensity data of the background file
@@ -271,20 +303,28 @@ def convertBin(im_data_hex, bg, size = (2048,2048)):
     return image_data
 
 def make(ID):
+    """
+    This function starts the conversion process in each thread.
+    It only works for 11 rings. Please adjust into 4 categories, if there are
+        a different amount of rings.
+    """
     if ID == 0:
-        for i in range(0,ringsNo/3):
+        for i in range(0,3):
             makeMap(i)
     elif ID == 1:
-        for i in range(ringsNo/3,(ringsNo/3)*2):
+        for i in range(3,6):
             makeMap(i)
     elif ID == 2:
-        for i in range((ringsNo/3)*2,(ringsNo/3)*3):
+        for i in range(6,9):
             makeMap(i)
     elif ID == 3:
-        for i in range((ringsNo/3)*3,ringsNo):
+        for i in range(9,11):
             makeMap(i)
     
 def main():
+    """
+    This function creates 4 processes to process all the rings faster
+    """
     procs = 4
     jobs = []
     for i in range(0,procs):

@@ -5,7 +5,11 @@
 @Date:Fri Nov 1, 2013
 
 The following script determines the true center coordinates and true radius of
-each ring and writes it to a data file to be used by etaphi.py.
+each ring and writes it to a data file to be used by eta_phi.py.
+It takes in two integer inputs, lowerID and upperID. The IDs are the unique integers on each file name after the prefix.
+The program can be run by typing:
+    python radii.py lowerID upperID
+in the terminal, in the directory that contains radii.py.
 Guesses of the radii of each ring need to be determined.
 
 """
@@ -20,13 +24,13 @@ import os
 """
 Edit the following parameters below to fit your tests
 """
-imDirectory = '/home/tempuser/Rohan/Images/'
-dataDirectory = '/home/tempuser/Rohan/Data/'
+imDirectory = '/home/tempuser/Rohan/Images/' # Directory where all the images will be saved
+dataDirectory = '/home/tempuser/Rohan/Data/' # Directory where all the data (.csv) will be saved
 
 filename = 'ring'
 
-header = 8192
 size = (2048,2048)
+header = 8192
 
 # guesses is an array of estimates of the parameters of each ring
 ringsNo = 11
@@ -79,7 +83,21 @@ if not os.path.exists(dataDirectory):
     else:
         sys.stdout.write("Please modify the directory or IDs and try again.\n\n")
         sys.exit()
-        
+
+output = filename + "1-" + str(ringsNo)
+filename = dataDirectory + filename
+if not os.path.isfile(filename):
+    sys.stdout.write("Cannot find the file: {0}. Check if it is in the right directory.".format(filename))
+    sys.exit()
+
+f = open(filename,'rb')
+f.seek(header)
+image_data = f.read()
+image_data = np.double(convertBin(image_data)
+f.close()
+
+bg = np.zeros(size)
+
 def getCircles(guess,ringi):
     """
     @param guess The array of guesses for each ring
@@ -122,7 +140,7 @@ def getCircles(guess,ringi):
     
 def r(xk,xi,yi):
     """
-    The function returns the function values used in Gauss Newton Method
+    The function returns the function values used in Gauss Newton Method.
     """
     rk = np.zeros((len(xi),1))
     for i in range(len(xi)):
@@ -164,11 +182,9 @@ def gnewtonm(x_0,xi,yi):
         k = k + 1
     return x
 
-def convertBin(im_data_hex, bg, size = (2048,2048)):
+def convertBin(im_data_hex):
     """
     @param im_data_hex binary string containing the intensity data
-    @param bg uint16 array containing the intensity data of the background file
-    @param size tuple containing the dimensions of the output image
     
     @return image_data uint16 array containing the intensity data of one frame 
             with the background subtracted off.
@@ -186,7 +202,7 @@ def convertBin(im_data_hex, bg, size = (2048,2048)):
     image_data = np.uint16(image_data)
     return image_data
 
-def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True):
+def toImage(image_data):
     """
     @param im_data uint16 array containing intensities from binary files
     
@@ -203,29 +219,27 @@ def toImage(image_data, outputim, size = (2048,2048), threshold = 60, rgb = True
     # Specifies the color map; can be modified if you want!
     plt.hot()
     # Saves image to output directory
-    plt.savefig(imDirectory + outputim + "-lo.png")
+    plt.savefig(imDirectory + output + "-lo.png")
 
     """
     Plots the intensity map by converting intensities to RGB values; slower  
         but has higher resolution
     """
-    # Only does this if desired
-    if(rgb):
-        # Determines max intensity for the gradient
-        maxI = np.max(image_data)
-        # creates an mxnx3 array of zeros of type uint8; this array will store 
-        #   the RGB values that will be converted to an image
-        rgbArr = np.zeros((size[0],size[0],3),dtype = 'uint8')
-        sys.stdout.write("Converting to Image\n")
-        for i in range(size[0]):
-            for j in range(size[0]):
-                # Converts intensity to pixel
-                rgbArr[i,j] = toRGB(image_data[i][j],maxI)
-        image = Image.fromarray(rgbArr,'RGB')
-        # Saves image to output director provided
-        image.save(imDirectory + outputim + ".png")
+    # Determines max intensity for the gradient
+    maxI = np.max(image_data)
+    # creates an mxnx3 array of zeros of type uint8; this array will store 
+    #   the RGB values that will be converted to an image
+    rgbArr = np.zeros((size[0],size[0],3),dtype = 'uint8')
+    sys.stdout.write("Converting to Image\n")
+    for i in range(size[0]):
+        for j in range(size[0]):
+            # Converts intensity to pixel
+            rgbArr[i,j] = toRGB(image_data[i][j],maxI)
+    image = Image.fromarray(rgbArr,'RGB')
+    # Saves image to output director provided
+    image.save(imDirectory + output + ".png")
         
-def toRGB(a, maxI, threshold = 60):
+def toRGB(a, maxI):
     """
     @param a intensity to be converted to RGB values
     @param maxI maximum intensity of the entire data, used to make gradient
@@ -259,22 +273,13 @@ def toRGB(a, maxI, threshold = 60):
         g = (color >> 4) & 0xFF
         b = (color >> 0) & 0xFF
         return [r,g,b]
-# this file contains all the intensity data in one binary file
-if __name__ == "__main__":
-    f = open(dataDirectory + filename,'rb')
-    f.seek(header)
-    image_data = f.read()
-    image_data = np.double(convertBin(image_data,np.zeros(size)))
-    f.close()
 
-    # circles is the parameter array containing the true center and true radius
-    circles = np.zeros((ringsNo,3)) 
-    ringi = np.zeros(size)
-    for i in range(ringsNo):
-        circles[i,:],ringi = getCircles(guesses[i,:],ringi)
+# circles is the parameter array containing the true center and true radius
+circles = np.zeros((ringsNo,3)) 
+ringi = np.zeros(size)
+for i in range(ringsNo):
+    circles[i,:],ringi = getCircles(guesses[i,:],ringi)
 
-    outputim = filename + str(1) +'-' + str(ringsNo)
-    
-    toImage(ringi, outputim);
-    #writes the ring parameters to a file to be read by etaphi.py
-    np.savetxt(dataDirectory + 'circles.csv', circles, delimiter=',') 
+toImage(ringi);
+#writes the ring parameters to a file to be read by etaphi.py
+np.savetxt(dataDirectory + 'circles.csv', circles, delimiter=',') 
