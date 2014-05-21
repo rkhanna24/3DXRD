@@ -1,9 +1,9 @@
 % Modify the five values below
-lowerID = 362 % Enter the ID of the first file (362,40, or 553)
-upperID = 379 % Enter the ID of the last file (379,43, or 570)
-omegamin = 0 % Enter the value for the minimum of the range of omega (0 or -180)
-omegamax = 180 % Enter the value for the maximum of the range of omega (180)
-noRings = 11 % Enter the number of rings (11)
+lowerID = 553; % Enter the ID of the first file (362,40, or 553)
+upperID = 570; % Enter the ID of the last file (379,43, or 570)
+omegamin = -180; % Enter the value for the minimum of the range of omega (0 or -180)
+omegamax = 180; % Enter the value for the maximum of the range of omega (180)
+noRings = 11; % Enter the number of rings (11)
 % No need to modify anything below
 
 fileprefix = strcat('Data/',num2str(lowerID),'-',num2str(upperID),'/eta-phi-map-arr-');
